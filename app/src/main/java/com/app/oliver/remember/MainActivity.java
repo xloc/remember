@@ -1,0 +1,61 @@
+package com.app.oliver.remember;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.CursorAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
+
+import java.io.File;
+
+public class MainActivity extends AppCompatActivity {
+
+    private SQLiteDatabase mDatabase;
+    private ListView mListView;
+    private WordCursorAdapter mCursorAdapter;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        initDatabase();
+        Cursor c = mDatabase.rawQuery("select * from maps",null);
+        mCursorAdapter = new WordCursorAdapter(this,c,false);
+    }
+
+    private void initDatabase() {
+        String path = RememberDataBase.path;
+        Log.i("main", path);
+        mDatabase = openOrCreateDatabase(path + RememberDataBase.DB_NAME, MODE_PRIVATE,null);
+    }
+
+    class WordCursorAdapter extends CursorAdapter {
+        public WordCursorAdapter(Context context, Cursor c, boolean autoRequery) {
+            super(context, c, autoRequery);
+        }
+
+        @Override
+        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+            return View.inflate(context,R.layout.map_item,null);
+        }
+
+        @Override
+        public void bindView(View view, Context context, Cursor cursor) {
+            TextView tvKey = (TextView)view.findViewById(R.id.tvKey);
+            tvKey.setText(cursor.getString(cursor.getColumnIndex(RememberDataBase.KEY)));
+            TextView tvValue = (TextView) view.findViewById(R.id.tvValue);
+            tvValue.setText(cursor.getString(cursor.getColumnIndex(RememberDataBase.VALUE)));
+        }
+    }
+}
