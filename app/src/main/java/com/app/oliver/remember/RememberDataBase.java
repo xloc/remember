@@ -52,6 +52,7 @@ public class RememberDatabase {
 
     public Cursor selectByHierarchy(String book, String list){
         int bookId = getBookId(book);
+        if(bookId == -1) return null;
 
         String sql = "select * from maps where list_id = " +
                 "(select _id from lists where " +
@@ -59,6 +60,20 @@ public class RememberDatabase {
                 "lists.book_id = "+bookId+") ";
 
         Log.d("main","In Method selectByHierarchy sql = "+sql);
+        return mDatabase.rawQuery(sql, null);
+    }
+
+    public Cursor selectBooks(){
+        String sql = "select * from books";
+        return mDatabase.rawQuery(sql,null);
+    }
+
+    public Cursor selectLists(String book) {
+        int bookId = getBookId(book);
+        if(bookId == -1) return null;
+        
+        String sql = "select * from lists where book_id = " + bookId;
+
         return mDatabase.rawQuery(sql, null);
     }
 
@@ -120,8 +135,9 @@ public class RememberDatabase {
         createTablesIfNotExist(copy);
         // FIXME: 2015/10/13 Can't use ? to replace table name words
         int bookId = getBookId(original, bookName);
+        if(bookId == -1) return;
 
-        Log.d("main","book id is"+bookId );
+        Log.d("main", "book id is" + bookId);
 
         Cursor c = original.rawQuery("select * from books where name = '" + bookName + "'", null);
         c.moveToNext();
@@ -143,7 +159,7 @@ public class RememberDatabase {
         }
 
         Cursor map = original.rawQuery("select * from maps where list_id=" +
-                        "(select _id from lists where book_id='"+ bookId +"')",
+                        "(select _id from lists where book_id='" + bookId + "')",
                 null);
         while(map.moveToNext()){
             String[] values = {
@@ -160,6 +176,7 @@ public class RememberDatabase {
     }
 
     private static int getBookId(SQLiteDatabase original, String bookName) {
+        if(bookName == null || bookName.equals("")) return -1;
         Cursor book = original.rawQuery("select _id from books where name = '" + bookName +"'",null);
 
 //        Cursor book = original.rawQuery("select ? from ? where ? = ?;",
@@ -180,18 +197,18 @@ public class RememberDatabase {
                 ");");
         db.execSQL(
                 "create table if not exists books (" +
-                "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "name VARCHAR(50) NOT NULL," +
-                "description TEXT" +
-                ");" );
+                        "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "name VARCHAR(50) NOT NULL," +
+                        "description TEXT" +
+                        ");");
         db.execSQL(
                 "create table if not exists maps (" +
-                "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "key TEXT NOT NULL," +
-                "value TEXT NOT NULL," +
-                "detail TEXT," +
-                "list_id INTEGER NOT NULL" +
-                ");");
+                        "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "key TEXT NOT NULL," +
+                        "value TEXT NOT NULL," +
+                        "detail TEXT," +
+                        "list_id INTEGER NOT NULL" +
+                        ");");
     }
 
     public static Cursor selectAllIn(String tableName, SQLiteDatabase db) {
@@ -205,6 +222,7 @@ public class RememberDatabase {
 
         return db.rawQuery(sql, null);
     }
+
 
 
 }
